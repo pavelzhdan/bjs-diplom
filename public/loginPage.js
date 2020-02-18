@@ -4,28 +4,24 @@ let userForm = new UserForm();
 
 userForm.loginFormAction();
 
-userForm.loginFormCallback = (data) => { 
-    return ApiConnector.login(data, (err, info) => {
-        if (err) {
-            alert("Вход разрешён")
+userForm.loginFormCallback = (info) => { 
+    return ApiConnector.login(info, (err) => {
+        if (err.success) {
             location.reload();
-        } else {alert("Вход запрещён");
+        } else {
+            userForm.setLoginErrorMessage(err.data);
         }
     })
 };
 
 userForm.registerFormAction();
 
-userForm.registerFormCallback = (data) => {
-    return ApiConnector.register(data, (err, info) => {
-        if (err) {
-            alert("Регистрация удалась");
+userForm.registerFormCallback = (info) => {
+    return ApiConnector.register(info, (err) => {
+        if (err.success) {
             location.reload();
-        } else {alert("Ошбика регистрации");
+        } else {
+            userForm.setRegisterErrorMessage(err.data)
        }
     })
 };
-
-/*login: oleg@demo.ru, password: demo
-login: ivan@demo.ru, password: demo
-login: petr@demo.ru, password: demo*/

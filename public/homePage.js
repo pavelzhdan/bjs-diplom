@@ -2,36 +2,97 @@ let button = new LogoutButton();
 
 button.action = () => {
     return ApiConnector.logout((err) => {
-        if (err) {
-            alert("Выход совершен успешно");
-            return location.reload();
-        } else {alert("Выход совершен успешно");
+        if (err.success) {
+            location.reload();
         };
     })
 };
 
-ApiConnector.current(({err, data}) => {
-    if (err){
-        let x = data;
-        console.log("Загрузка данных удалась?")
-        console.log(`вывод на печать объект err ${err}`);
-        console.log(`вывод на печать тип объекта err ${err}`);
-        console.log(`вывод на печать объект data ${data}`);
-        console.log(`вывод на печать тип объекта err ${data}`);
-        console.log(`вывод на печать объект err data ${{err, data}}`);
-        console.log(`вывод на печать тип объекта err ${{err, data}}`);        
-        console.log(typeof x);
-        ProfileWidget.showProfile(data);
-    } else {
-        console.log(`вывод на печать объект err ${err}`);
-        console.log(`вывод на печать тип объекта err ${err}`);
-        console.log(`вывод на печать объект data ${data}`);
-        console.log(`вывод на печать тип объекта err ${data}`);
-        console.log(`вывод на печать объект err data ${{err, data}}`);
-        console.log(`вывод на печать тип объекта err ${{err, data}}`);   
-        console.log("Загрузка данных не удалась?")}
+ApiConnector.current((err) => {
+    if(err.success){
+        ProfileWidget.showProfile(err.data);}
 });
 
-/*login: oleg@demo.ru, password: demo
-login: ivan@demo.ru, password: demo
-login: petr@demo.ru, password: demo*/
+let rates = new RatesBoard();
+
+function ratesUpdate (){
+ApiConnector.getStocks((err) => {
+    if (err.success){
+        rates.clearTable();
+        rates.fillTable(err.data);}});
+    };
+
+ratesUpdate ();
+
+setInterval(ratesUpdate, 60000);
+
+let money = new MoneyManager();
+
+money.addMoneyCallback = (sendCurrency) =>{
+    ApiConnector.addMoney(sendCurrency, (err) =>{
+        if (err.success){
+            ProfileWidget.showProfile(err.data);
+            money.setMessage(false, "Счет пополнен");
+        } else {
+            money.setMessage(true, err.data);
+        };
+    });
+};
+
+money.conversionMoneyCallback = (convertmoney) =>{
+    ApiConnector.convertMoney(convertmoney, (err) => {
+        if (err.success){
+            ProfileWidget.showProfile(err.data);
+            money.setMessage(false, "Конвертация завершена");
+        } else {
+            money.setMessage(true, err.data);
+        };
+    })
+};
+
+money.sendMoneyCallback = (sendMoneyTo) =>{
+    ApiConnector.transferMoney(sendMoneyTo, (err) => {
+        if (err.success){
+            ProfileWidget.showProfile(err.data);
+            money.setMessage(false, "Деньги отправлены");
+        } else {
+            money.setMessage(true, err.data);
+        };
+    })
+};
+
+let fav = new FavoritesWidget();
+
+ApiConnector.getFavorites((err) =>{
+    if (err.success){
+        fav.clearTable();
+        fav.fillTable(err.data);
+        money.updateUsersList(err.data);
+    };
+})
+
+fav.addUserCallback = (addUserData) =>{
+    ApiConnector.addUserToFavorites(addUserData, (err) =>{
+        if (err.success){
+            fav.clearTable();
+            fav.fillTable(err.data);
+            money.updateUsersList(err.data);
+            fav.setMessage(false, "Пользователь успешно добавлен");
+        } else {
+            fav.setMessage(false, err.data);
+        };
+    })
+};
+
+fav.removeUserCallback = (deleteUserData) =>{
+    ApiConnector.removeUserFromFavorites(deleteUserData, (err) =>{
+        if (err.success){
+            fav.clearTable();
+            fav.fillTable(err.data);
+            money.updateUsersList(err.data);
+            fav.setMessage(false, "Пользователь успешно удален");
+        } else {
+            fav.setMessage(true, err.data);
+        };
+    })
+};
